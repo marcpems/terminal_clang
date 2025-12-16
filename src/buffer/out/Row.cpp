@@ -6,6 +6,10 @@
 
 #include <isa_availability.h>
 
+#if defined(TIL_ARM_NEON_INTRINSICS)
+#include <arm_neon.h>
+#endif
+
 #include "../../types/inc/CodepointWidthDetector.hpp"
 
 // It would be nice to add checked array access in the future, but it's a little annoying to do so without impacting
@@ -323,7 +327,7 @@ void ROW::_init() noexcept
             // --> The while loop uses <= to emit at least 1 more write.
         } while (chars <= charsEnd);
     }
-#elif defined(TIL_ARM_NEON_INTRINSICS)
+#elif defined(TIL_ARM_NEON_INTRINSICS) 
     alignas(uint16x8_t) static constexpr uint16_t offsetsData[]{ 0, 1, 2, 3, 4, 5, 6, 7 };
 
     auto chars = _charsBuffer;
@@ -336,7 +340,7 @@ void ROW::_init() noexcept
 
     do
     {
-        vst1q_u16(chars, whitespace);
+        vst1q_u16(reinterpret_cast<uint16_t*>(chars), whitespace);
         vst1q_u16(charOffsets, offsets);
         offsets = vaddq_u16(offsets, increment);
         chars += 8;
