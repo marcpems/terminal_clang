@@ -4,6 +4,10 @@
     Any build logic in this file must be optional and only apply to non-release builds.
   -->
 
+  <PropertyGroup>
+    <LLVMInstallDir>C:\Program Files\llvm</LLVMInstallDir>
+  </PropertyGroup>
+
   <!-- MsBuildCache -->
   <PropertyGroup>
     <!-- Off by default -->
