@@ -16,7 +16,7 @@ if /I not "%1"=="llvm" if /I not "%1"=="msvc" if "%4"=="" if /I not "%2"=="arm64
     echo   compiler: msvc or llvm
     echo   silicon: arm64 or x64
     echo   configuration: debug or release
-    echo Example: runTest.cmd msvc debug 5
+    echo Example: runTest.cmd msvc x64 debug 5
     exit /b 1
 ) 
 
