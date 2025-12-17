@@ -44,6 +44,6 @@ for /L %%i in (1,1,%ITERATIONS%) do (
     if "%COMPILER%"=="msvc" (
     start /wait "Build Iteration %%i" cmd /k "call tools\razzle.cmd && msbuild openconsole.slnx /p:platform=%SILICON%;configuration=%CONFIG% /t:Conhost\Host_EXE /m && echo. && echo Build complete! Press any key to close this window and continue... && pause > nul && exit"
     ) else (
-    start /wait "Build Iteration %%i" cmd /k "call tools\razzle.cmd && msbuild openconsole.slnx /p:platform=%SILICON%;configuration=%CONFIG% /p:WindowsTerminalClangBuild=true /t:Conhost\Host_EXE /m && echo. && echo Build complete! Press any key to close this window and continue... && pause > nul && exit"
+    start /wait "Build Iteration %%i" cmd /k "call tools\razzle.cmd && msbuild openconsole.slnx /p:platform=%SILICON%;configuration=%CONFIG% /p:WindowsTerminalClangBuild=true /t:Conhost\Host_EXE /m /bl:terminal_llvm_arm64.binlog&& echo. && echo Build complete! Press any key to close this window and continue... && pause > nul && exit"
     )
 )
