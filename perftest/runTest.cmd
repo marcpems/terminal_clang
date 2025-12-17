@@ -20,6 +20,7 @@ set COMPILER=%1
 set SILICON=%2
 set CONFIG=%3
 set ITERATIONS=%4
+echo Using parameters compiler=%COMPILER% silicon=%SILICON% configuration=%CONFIG% number_of_iterations=%ITERATIONS%
 )
 
 cd ..
