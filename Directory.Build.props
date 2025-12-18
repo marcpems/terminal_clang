@@ -5,7 +5,7 @@
   -->
 
   <PropertyGroup>
-    <LLVMInstallDir>e:\Program Files\llvm</LLVMInstallDir>
+    <LLVMInstallDir>c:\Program Files\llvm</LLVMInstallDir>
     <LLVMToolsVersion>21.1.2</LLVMToolsVersion>
   </PropertyGroup>
 
