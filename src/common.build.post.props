@@ -83,9 +83,10 @@
   <PropertyGroup>
     <CAExcludePath>$(SolutionDir)\dep\;$(CAExcludePath)</CAExcludePath>
   </PropertyGroup>
-  <PropertyGroup>
-	  <LinkToolPath></LinkToolPath>
-	  <LinkToolExe></LinkToolExe>
+  
+  <!-- Configure LLD linker when using ClangCL toolset -->
+  <PropertyGroup Condition="'$(PlatformToolset)'=='ClangCL'">
+    <LinkToolExe>lld-link.exe</LinkToolExe>
   </PropertyGroup>
 
   <Target Name="_ComputePrecompToCleanUp">
