@@ -12,11 +12,12 @@ echo Running each configuration 7 times...
 echo ====================================================================
 echo.
 
-REM Array to store final averages
-set /a config_count=0
+REM Delete existing summary file if it exists
+set "SUMMARY_FILE=%~dp0BuildTimeSummary.txt"
+if exist "%SUMMARY_FILE%" del "%SUMMARY_FILE%"
 
-REM Loop through all 8 configurations
-for %%C in (1 2 3 4 5 6 7 8) do (
+REM Loop through all 12 configurations
+for %%C in (1 2 3 4 5 6 7 8 9 10 11 12) do (
     call :RunConfigTests %%C
 )
 
@@ -24,8 +25,8 @@ echo.
 echo ====================================================================
 echo Performance Test Results Summary
 echo ====================================================================
-for /l %%i in (0,1,7) do (
-    if defined result_%%i (
+for /l %%i in (0,1,11) do (
+    if defined result_!%%i! (
         echo !result_%%i!
     )
 )
@@ -35,7 +36,7 @@ goto :eof
 
 REM ====================================================================
 REM Run 7 tests for a single configuration
-REM Parameter: configuration number (1-8)
+REM Parameter: configuration number (1-12)
 REM ====================================================================
 :RunConfigTests
 set "CONFIG=%~1"
@@ -49,6 +50,10 @@ if "%CONFIG%"=="5" set "CONFIG_DESC=ARM64 MSVC RELEASE"
 if "%CONFIG%"=="6" set "CONFIG_DESC=ARM64 MSVC DEBUG"
 if "%CONFIG%"=="7" set "CONFIG_DESC=ARM64 LLVM RELEASE"
 if "%CONFIG%"=="8" set "CONFIG_DESC=ARM64 LLVM DEBUG"
+if "%CONFIG%"=="9" set "CONFIG_DESC=X64 LLVM LLD RELEASE"
+if "%CONFIG%"=="10" set "CONFIG_DESC=X64 LLVM LLD DEBUG"
+if "%CONFIG%"=="11" set "CONFIG_DESC=ARM64 LLVM LLD RELEASE"
+if "%CONFIG%"=="12" set "CONFIG_DESC=ARM64 LLVM LLD DEBUG"
 
 echo.
 echo ----------------------------------------------------------------
@@ -62,14 +67,13 @@ set /a run_count=0
 
 for /l %%i in (1,1,7) do (
     echo Run %%i of 7...
-    call "%~dp0prep.cmd" %CONFIG%
+    start /wait cmd /c ""%~dp0prep.cmd" %CONFIG%"
     
     REM Find the most recent build output file for this config
-    for /f "delims=" %%f in ('dir /b /o-d /tc "%~dp0build_%CONFIG_DESC: =_%_*.txt" 2^>nul') do (
-        set "LAST_FILE=%%f"
-        goto :FoundFile
+    set "LAST_FILE="
+    for /f "delims=" %%f in ('dir /b /o-d /tc "%~dp0build_!CONFIG_DESC: =_!_*.txt" 2^>nul') do (
+        if not defined LAST_FILE set "LAST_FILE=%%f"
     )
-    :FoundFile
     
     REM Extract time from the file
     for /f "tokens=2,3" %%a in ('findstr /C:"Time Elapsed" "%~dp0!LAST_FILE!"') do (
@@ -109,6 +113,9 @@ echo Average time (6 runs): !avg_display!
 REM Store result for summary
 set /a result_index=%CONFIG%-1
 set "result_!result_index!=%CONFIG_DESC:~0,30%                              Average: !avg_display!"
+
+REM Write to summary file
+echo %CONFIG_DESC% - Average: !avg_display! >> "%SUMMARY_FILE%"
 
 goto :eof
 

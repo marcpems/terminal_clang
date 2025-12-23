@@ -71,7 +71,7 @@
     If we do not override the target platform, the AppX packaging rules (which we honestly don't even care to use...) will
     fail because they're looking for an SDK called "Clang.Windows". Yeah.
   -->
-  <PropertyGroup Condition="'$(OpenConsoleUniversalApp)'=='true' and '$(PlatformToolset)'=='ClangCL'">
+  <PropertyGroup Condition="'$(OpenConsoleUniversalApp)'=='true' and '$(PlatformToolset)'=='ClangCL' ">
     <TargetPlatformIdentifier Condition="'$(_OpenConsoleProjectProvidedTargetPlatformIdentifier)'==''">$(_OpenConsoleProjectProvidedTargetPlatformIdentifier)</TargetPlatformIdentifier>
     <TargetPlatformIdentifier Condition="'$(TargetPlatformIdentifier)'==''">UAP</TargetPlatformIdentifier>
   </PropertyGroup>
@@ -83,10 +83,22 @@
   <PropertyGroup>
     <CAExcludePath>$(SolutionDir)\dep\;$(CAExcludePath)</CAExcludePath>
   </PropertyGroup>
-  <PropertyGroup>
-	  <LinkToolPath></LinkToolPath>
-	  <LinkToolExe></LinkToolExe>
+<!-- Configure LLD linker when using '$(WindowsTerminalClangLLDBuild)'=='true' -->
+  <PropertyGroup Condition="'$(WindowsTerminalClangLLDBuild)'=='true'">
+    <LinkToolExe>lld-link.exe</LinkToolExe>
+    <!-- lld-link doesn't support LTCG, disable whole program optimization -->
+    <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(WindowsTerminalClangLLDBuild)'=='true'">
+    <ClCompile>
+      <!-- Disable /GL (Whole Program Optimization) for lld-link compatibility -->
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+    </ClCompile>
+    <Link>
+      <!-- Disable Link Time Code Generation for lld-link -->
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+    </Link>
+  </ItemDefinitionGroup>
 
   <Target Name="_ComputePrecompToCleanUp">
     <ItemGroup>

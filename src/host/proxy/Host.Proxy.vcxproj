@@ -26,6 +26,8 @@
     <EnableHybridCRT>true</EnableHybridCRT>
     <!-- MIDL generates code clang can't link, lol -->
     <OpenConsoleProjectRequiresMSVC>true</OpenConsoleProjectRequiresMSVC>
+    <!-- lld-link doesn't support wildcards in library paths, so disable vcpkg auto-linking -->
+    <VcpkgAutoLink>false</VcpkgAutoLink>
   </PropertyGroup>
   <Import Project="$(SolutionDir)src\common.build.pre.props" />
   <ItemGroup>
