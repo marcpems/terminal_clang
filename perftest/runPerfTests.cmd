@@ -38,7 +38,8 @@ set "SUMMARY_FILE=%OUTPUT_DIR%\BuildTimeSummary.txt"
 if exist "%SUMMARY_FILE%" del "%SUMMARY_FILE%"
 
 REM Loop through all 12 configurations
-for %%C in (1 2 3 4 5 6 7 8 9 10 11 12) do (
+REM for %%C in (1 2 3 4 5 6 7 8 9 10 11 12) do (
+for %%C in (9 10 11 12) do (
     call :RunConfigTests %%C
 )
 
@@ -93,18 +94,20 @@ for /l %%i in (1,1,%ITERATIONS%) do (
 
     REM Find the most recent build output file for this config
     set "LAST_FILE="
-    for /f "delims=" %%f in ('dir /b /o-d /tc "%~dp0build_!CONFIG_DESC: =_!_*.txt" 2^>nul') do (
+    for /f "delims=" %%f in ('dir /b /o-d /tc "%OUTPUT_DIR%\build_!CONFIG_DESC: =_!_*.txt" 2^>nul') do (
         if not defined LAST_FILE set "LAST_FILE=%%f"
     )
     
     REM Extract time from the file
-    for /f "tokens=2,3" %%a in ('findstr /C:"Time Elapsed" "%~dp0!LAST_FILE!"') do (
+    for /f "tokens=2,3" %%a in ('findstr /C:"Time Elapsed" "%OUTPUT_DIR%\!LAST_FILE!"') do (
         set "TIME_STR=%%b"
+
         call :ConvertToSeconds "!TIME_STR!" time_seconds
-        
+
         set /a times_%%i=!time_seconds!
-        echo   Time: %%b (%%a)
-        
+        echo   Time: %%b %%a
+        echo   Debug: !times_%%i! centiseconds
+    
         if !time_seconds! GTR !max_time! (
             set /a max_time=!time_seconds!
             set /a max_index=%%i
@@ -114,23 +117,44 @@ for /l %%i in (1,1,%ITERATIONS%) do (
 
 REM Calculate average excluding the slowest run (unless only 1 iteration)
 echo.
-echo Discarding slowest run: !max_index! (!max_time! centiseconds)
-set /a sum=0
-set /a count=0
+echo %ITERATIONS% runs completed for %CONFIG_DESC%.
 
-for /l %%i in (1,1,%ITERATIONS%) do (
-    if not %%i==!max_index! (
-        set /a sum=!sum! + !times_%%i!
-        set /a count+=1
+
+    echo Discarding slowest run: !max_index! (!max_time! centiseconds)
+    set /a sum=0
+    set /a count=0
+
+    for /l %%i in (1,1,%ITERATIONS%) do (
+        if not %%i==!max_index! (
+            set /a idx=%%i
+            set /a sum=!sum! + !times_%%i!
+            set /a count+=1
+        )
     )
-)
 
-set /a avg_time=!sum! / !count!
+    if %count% EQU 0 (
+        echo Just the one run, so adjuting times.
+        set /a count=1
+        set /a avg_time=!times_1!
+    ) else (
+        set /a avg_time=!sum! / !count!
+        echo Summed time of %count% runs: !sum! centiseconds
+    )
 
-REM Convert back to time format for display
-call :ConvertToTimeFormat !avg_time! avg_display
+    REM Convert back to time format for display
+    call :ConvertToTimeFormat !avg_time! avg_display
 
-echo Average time (!count! runs): !avg_display!
+    echo Average time (!count! runs): !avg_display!
+
+REM OLD CODE: 
+REM if "!ITERATIONS!"=="1" ( <-- doesnt work
+REM     echo Just one iteration
+REM     set /a avg_time=!times_1!
+REM     call :ConvertToTimeFormat !avg_time! avg_display
+REM     echo Average time (1 run): !avg_display!
+REM ) else (
+
+
 
 REM Store result for summary
 set /a result_index=%CONFIG%-1

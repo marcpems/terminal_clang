@@ -152,7 +152,7 @@ if %BUILD_ERROR% NEQ 0 (
 REM Extract and display the elapsed time
 for /f "tokens=2,3*" %%a in ('findstr /C:"Time Elapsed" "%BUILD_OUTPUT%"') do (
     echo Success: %~4 - Time Elapsed %%b %%c
-REM     set "LAST_BUILD_TIME=%%b %%c"
+    set "LAST_BUILD_TIME=%%b %%c"
 )
 
 echo Output saved to: %BUILD_OUTPUT%
@@ -180,6 +180,10 @@ if exist "%SOURCE_BIN%" (
 )
 
 REM Pause for 2 seconds before exiting
+
+echo LAST_BUILD_TIME=%LAST_BUILD_TIME%
+
+
 timeout /t 2 /nobreak >nul
 
 goto :eof
