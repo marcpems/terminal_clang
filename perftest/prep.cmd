@@ -4,15 +4,23 @@ setlocal enabledelayedexpansion
 
 REM ====================================================================
 REM Parse command-line parameter for build configuration
-REM Usage: prep.cmd [1-12]
+REM Usage: prep.cmd [1-12] [output_folder]
 REM   1 = X64 MSVC RELEASE       2 = X64 MSVC DEBUG
 REM   3 = X64 LLVM RELEASE       4 = X64 LLVM DEBUG
 REM   5 = ARM64 MSVC RELEASE     6 = ARM64 MSVC DEBUG
 REM   7 = ARM64 LLVM RELEASE     8 = ARM64 LLVM DEBUG
 REM   9 = X64 LLVM LLD RELEASE   10 = X64 LLVM LLD DEBUG
 REM   11 = ARM64 LLVM LLD RELEASE 12 = ARM64 LLVM LLD DEBUG
-REM   (no parameter = error)
+REM   output_folder = Optional folder path for build outputs (default: script directory)
 REM ====================================================================
+
+REM Set output directory from parameter or use script directory
+if "%~2"=="" (
+    set "OUTPUT_DIR=%~dp0"
+) else (
+    set "OUTPUT_DIR=%~2"
+    if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
+)
 
 set "VSDEVCMD="
 
@@ -119,14 +127,14 @@ REM ====================================================================
 echo.
 echo Building: %~4
 
-REM Create output file in script directory with timestamp and config name
+REM Create output file in output directory with timestamp and config name
 set "CONFIG_NAME=%~4"
 set "CONFIG_NAME=%CONFIG_NAME: =_%"
 set "CONFIG_NAME=%CONFIG_NAME:/=_%"
 set "TIMESTAMP=%DATE:~10,4%%DATE:~4,2%%DATE:~7,2%_%TIME:~0,2%%TIME:~3,2%%TIME:~6,2%"
 set "TIMESTAMP=%TIMESTAMP: =0%"
 set "TIMESTAMP=%TIMESTAMP:/=_%"
-set "BUILD_OUTPUT=%~dp0build_%CONFIG_NAME%_%TIMESTAMP%.txt"
+set "BUILD_OUTPUT=%OUTPUT_DIR%\build_%CONFIG_NAME%_%TIMESTAMP%.txt"
 
 msbuild openconsole.slnx /p:platform=%~1;configuration=%~2 %~3 /t:Conhost\Host_EXE /m > "%BUILD_OUTPUT%" 2>&1
 set "BUILD_ERROR=%ERRORLEVEL%"
@@ -144,14 +152,14 @@ if %BUILD_ERROR% NEQ 0 (
 REM Extract and display the elapsed time
 for /f "tokens=2,3*" %%a in ('findstr /C:"Time Elapsed" "%BUILD_OUTPUT%"') do (
     echo Success: %~4 - Time Elapsed %%b %%c
-    set "LAST_BUILD_TIME=%%b %%c"
+REM     set "LAST_BUILD_TIME=%%b %%c"
 )
 
 echo Output saved to: %BUILD_OUTPUT%
 
-REM Copy the built binary to perftest\binaries folder
+REM Copy the built binary to binaries folder in output directory
 set "SOURCE_BIN=bin\%~1\%~2\openconsole.exe"
-set "BINARIES_DIR=%~dp0binaries"
+set "BINARIES_DIR=%OUTPUT_DIR%\binaries"
 if not exist "%BINARIES_DIR%" mkdir "%BINARIES_DIR%"
 
 REM Determine compiler type from description
@@ -171,8 +179,8 @@ if exist "%SOURCE_BIN%" (
     echo WARNING: Binary not found at %SOURCE_BIN%
 )
 
-REM Pause for 10 seconds before exiting
-timeout /t 10 /nobreak >nul
+REM Pause for 2 seconds before exiting
+timeout /t 2 /nobreak >nul
 
 goto :eof
 

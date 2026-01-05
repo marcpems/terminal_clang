@@ -4,16 +4,29 @@ setlocal enabledelayedexpansion
 REM ====================================================================
 REM Performance Test Runner
 REM Runs each build configuration 7 times, discards slowest, averages the rest
+REM Usage: runPerfTests.cmd [output_folder]
+REM   output_folder: Optional folder path for BuildTimeSummary.txt (default: e:\terminal)
 REM ====================================================================
+
+REM Set output directory from parameter or use default
+if "%~1"=="" (
+    set "OUTPUT_DIR=e:\terminal"
+) else (
+    set "OUTPUT_DIR=%~1"
+)
+
+REM Ensure output directory exists
+if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
 
 echo ====================================================================
 echo Performance Test Suite
 echo Running each configuration 7 times...
+echo Output directory: %OUTPUT_DIR%
 echo ====================================================================
 echo.
 
 REM Delete existing summary file if it exists
-set "SUMMARY_FILE=%~dp0BuildTimeSummary.txt"
+set "SUMMARY_FILE=%OUTPUT_DIR%\BuildTimeSummary.txt"
 if exist "%SUMMARY_FILE%" del "%SUMMARY_FILE%"
 
 REM Loop through all 12 configurations
@@ -67,7 +80,7 @@ set /a run_count=0
 
 for /l %%i in (1,1,7) do (
     echo Run %%i of 7...
-    start /wait cmd /c ""%~dp0prep.cmd" %CONFIG%"
+    start /wait cmd /c ""%~dp0prep.cmd" %CONFIG% "%OUTPUT_DIR%""
     
     REM Find the most recent build output file for this config
     set "LAST_FILE="
