@@ -86,17 +86,28 @@
 <!-- Configure LLD linker when using '$(WindowsTerminalClangLLDBuild)'=='true' -->
   <PropertyGroup Condition="'$(WindowsTerminalClangLLDBuild)'=='true'">
     <LinkToolExe>lld-link.exe</LinkToolExe>
-    <!-- lld-link doesn't support LTCG, disable whole program optimization -->
+    <!-- lld-link doesn't support MSVC LTCG, disable whole program optimization -->
     <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(WindowsTerminalClangLLDBuild)'=='true'">
     <ClCompile>
-      <!-- Disable /GL (Whole Program Optimization) for lld-link compatibility -->
+      <!-- Disable /GL (MSVC Whole Program Optimization) for lld-link compatibility -->
       <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
-      <!-- Disable Link Time Code Generation for lld-link -->
+      <!-- Disable MSVC Link Time Code Generation for lld-link -->
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+    </Link>
+  </ItemDefinitionGroup>
+  <!-- Enable clang LTO for release builds with LLD -->
+  <ItemDefinitionGroup Condition="'$(WindowsTerminalClangLLDBuild)'=='true' and ('$(Configuration)'=='Release' or '$(Configuration)'=='AuditMode')">
+    <ClCompile>
+      <!-- Enable ThinLTO for clang - provides excellent optimization with reasonable compile times -->
+      <AdditionalOptions>%(AdditionalOptions) -flto=thin</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <!-- Enable ThinLTO at link time -->
+      <AdditionalOptions>%(AdditionalOptions) -flto=thin</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
 

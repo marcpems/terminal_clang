@@ -240,6 +240,19 @@
     </Link>
   </ItemDefinitionGroup>
 
+  <!-- Additional clang-specific optimizations for Release builds -->
+  <ItemDefinitionGroup Condition="'$(PlatformToolset)'=='ClangCL' and ('$(Configuration)'=='Release' or '$(Configuration)'=='AuditMode')">
+    <ClCompile>
+      <!-- 
+        Performance optimization flags for clang:
+        -fno-math-errno: Don't set errno for math functions (faster floating-point operations)
+        -fvectorize: Enable auto-vectorization (already default at -O2, but explicit)
+        -fslp-vectorize: Enable superword-level parallelism vectorization
+      -->
+      <AdditionalOptions>%(AdditionalOptions) -fno-math-errno -fvectorize -fslp-vectorize</AdditionalOptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+
   <!-- Install an empty one for projects that won't have one.
        The following import will override it when it needs to happen. -->
   <Target Name="MergePGOCounts" />
