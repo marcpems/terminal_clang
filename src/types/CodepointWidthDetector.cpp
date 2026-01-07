@@ -689,7 +689,12 @@ constexpr int ucdToCharacterWidth(const int val) noexcept
 
 // Decodes the next codepoint from the given UTF-16 string.
 // Returns the start of the next codepoint. Assumes `it < end`.
-[[msvc::forceinline]] constexpr const wchar_t* utf16NextOrFFFD(const wchar_t* it, const wchar_t* end, char32_t& out)
+#if defined(__clang__)
+[[clang::always_inline]]
+#else
+[[msvc::forceinline]]
+#endif
+constexpr const wchar_t* utf16NextOrFFFD(const wchar_t* it, const wchar_t* end, char32_t& out)
 {
     __assume(it != nullptr);
     __assume(end != nullptr);
@@ -721,7 +726,12 @@ constexpr int ucdToCharacterWidth(const int val) noexcept
 
 // Decodes the preceding codepoint from the given UTF-16 string.
 // Returns the start of the preceding codepoint. Assumes `it > beg`.
-[[msvc::forceinline]] constexpr const wchar_t* utf16PrevOrFFFD(const wchar_t* it, const wchar_t* beg, char32_t& out)
+#if defined(__clang__)
+[[clang::always_inline]]
+#else
+[[msvc::forceinline]]
+#endif
+constexpr const wchar_t* utf16PrevOrFFFD(const wchar_t* it, const wchar_t* beg, char32_t& out)
 {
     __assume(it != nullptr);
     __assume(beg != nullptr);

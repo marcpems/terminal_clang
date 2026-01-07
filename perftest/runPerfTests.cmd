@@ -4,9 +4,10 @@ setlocal enabledelayedexpansion
 REM ====================================================================
 REM Performance Test Runner
 REM Runs each build configuration N times, discards slowest, averages the rest
-REM Usage: runPerfTests.cmd [iterations] [output_folder]
+REM Usage: runPerfTests.cmd [iterations] [output_folder] [enable_lto]
 REM   iterations: Optional number of iterations per configuration (default: 7)
 REM   output_folder: Optional folder path for BuildTimeSummary.txt (default: e:\terminal)
+REM   enable_lto: Optional: true to enable LTO for LLD builds, false to disable (default: true)
 REM ====================================================================
 
 REM Set number of iterations from parameter or use default
@@ -25,6 +26,9 @@ if "%~2"=="" (
 
 REM Ensure output directory exists
 if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
+
+set "ENABLE_LTO=%~3"
+if "%ENABLE_LTO%"=="" set "ENABLE_LTO=true"
 
 echo ====================================================================
 echo Performance Test Suite
@@ -92,7 +96,7 @@ set /a run_count=0
 
 for /l %%i in (1,1,%ITERATIONS%) do (
     echo Run %%i of %ITERATIONS%...
-    start /wait cmd /c ""%~dp0prep.cmd" %CONFIG% "%OUTPUT_DIR%""
+    start /wait cmd /c ""%~dp0prep.cmd" %CONFIG% "%OUTPUT_DIR%" %ENABLE_LTO%"
 
     REM Find the most recent build output file for this config
     set "LAST_FILE="

@@ -245,11 +245,11 @@
     <ClCompile>
       <!-- 
         Performance optimization flags for clang:
-        -fno-math-errno: Don't set errno for math functions (faster floating-point operations)
-        -fvectorize: Enable auto-vectorization (already default at -O2, but explicit)
-        -fslp-vectorize: Enable superword-level parallelism vectorization
+        /clang:-fno-math-errno: Don't set errno for math functions (faster floating-point operations)
+        /clang:-fvectorize: Enable auto-vectorization (already default at -O2, but explicit)
+        /clang:-fslp-vectorize: Enable superword-level parallelism vectorization
       -->
-      <AdditionalOptions>%(AdditionalOptions) -fno-math-errno -fvectorize -fslp-vectorize</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions) /clang:-fno-math-errno /clang:-fvectorize /clang:-fslp-vectorize</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
 

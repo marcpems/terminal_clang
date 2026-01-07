@@ -99,15 +99,15 @@
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
-  <!-- Enable clang LTO for release builds with LLD -->
-  <ItemDefinitionGroup Condition="'$(WindowsTerminalClangLLDBuild)'=='true' and ('$(Configuration)'=='Release' or '$(Configuration)'=='AuditMode')">
+  <!-- Enable clang LTO for release builds with LLD (controlled by WindowsTerminalEnableLTO) -->
+  <ItemDefinitionGroup Condition="'$(WindowsTerminalClangLLDBuild)'=='true' and ('$(Configuration)'=='Release' or '$(Configuration)'=='AuditMode') and '$(WindowsTerminalEnableLTO)'=='true'">
     <ClCompile>
       <!-- Enable ThinLTO for clang - provides excellent optimization with reasonable compile times -->
       <AdditionalOptions>%(AdditionalOptions) -flto=thin</AdditionalOptions>
     </ClCompile>
     <Link>
-      <!-- Enable ThinLTO at link time -->
-      <AdditionalOptions>%(AdditionalOptions) -flto=thin</AdditionalOptions>
+      <!-- Enable ThinLTO at link time - lld-link uses /opt:lldlto instead of /lto -->
+      <AdditionalOptions>%(AdditionalOptions) /opt:lldlto=3</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
 

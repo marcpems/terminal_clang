@@ -610,12 +610,24 @@ namespace winrt::Microsoft::Terminal::Control::implementation
             const auto maxOffsetY = drawableRange - pipHeight;
             const auto offsetScale = maxOffsetY / gsl::narrow_cast<float>(update.newMaximum + update.newViewportSize);
             // A helper to turn a TextBuffer row offset into a bitmap offset.
-            const auto dataAt = [&](til::CoordType row) [[msvc::forceinline]] {
+            const auto dataAt = [&](til::CoordType row)
+#if defined(__clang__)
+            [[clang::always_inline]]
+#else
+            [[msvc::forceinline]]
+#endif
+            {
                 const auto y = std::clamp<long>(lrintf(row * offsetScale), 0, maxOffsetY);
                 return drawableDataStart + stride * y;
             };
             // A helper to draw a single pip (mark) at the given location.
-            const auto drawPip = [&](uint8_t* beg, til::color color) [[msvc::forceinline]] {
+            const auto drawPip = [&](uint8_t* beg, til::color color)
+#if defined(__clang__)
+            [[clang::always_inline]]
+#else
+            [[msvc::forceinline]]
+#endif
+            {
                 const auto end = beg + pipHeight * stride;
                 for (; beg < end; beg += stride)
                 {

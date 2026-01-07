@@ -25,7 +25,8 @@
     -->
     <EnableHybridCRT>true</EnableHybridCRT>
     <!-- MIDL generates code clang can't link, lol -->
-    <OpenConsoleProjectRequiresMSVC>true</OpenConsoleProjectRequiresMSVC>
+    <!-- DISABLED: Testing if LLD can handle this now -->
+    <!-- <OpenConsoleProjectRequiresMSVC>true</OpenConsoleProjectRequiresMSVC> -->
     <!-- lld-link doesn't support wildcards in library paths, so disable vcpkg auto-linking -->
     <VcpkgAutoLink>false</VcpkgAutoLink>
   </PropertyGroup>
@@ -90,6 +91,8 @@
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>OpenConsoleProxy.def</ModuleDefinitionFile>
+      <!-- lld-link workaround: Allow duplicate Object_StubDesc from MIDL-generated proxy files -->
+      <AdditionalOptions>%(AdditionalOptions) /force:multiple</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
 

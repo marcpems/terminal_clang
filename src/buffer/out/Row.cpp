@@ -553,7 +553,12 @@ void ROW::ReplaceAttributes(const til::CoordType beginIndex, const til::CoordTyp
     _attr.replace(_clampedColumnInclusive(beginIndex), _clampedColumnInclusive(endIndex), newAttr);
 }
 
-[[msvc::forceinline]] ROW::WriteHelper::WriteHelper(ROW& row, til::CoordType columnBegin, til::CoordType columnLimit, const std::wstring_view& chars) noexcept :
+#if defined(__clang__)
+[[clang::always_inline]]
+#else
+[[msvc::forceinline]]
+#endif
+ROW::WriteHelper::WriteHelper(ROW& row, til::CoordType columnBegin, til::CoordType columnLimit, const std::wstring_view& chars) noexcept :
     row{ row },
     chars{ chars }
 {
@@ -568,7 +573,12 @@ void ROW::ReplaceAttributes(const til::CoordType beginIndex, const til::CoordTyp
     charsConsumed = 0;
 }
 
-[[msvc::forceinline]] bool ROW::WriteHelper::IsValid() const noexcept
+#if defined(__clang__)
+[[clang::always_inline]]
+#else
+[[msvc::forceinline]]
+#endif
+bool ROW::WriteHelper::IsValid() const noexcept
 {
     return colBeg < colLimit && !chars.empty();
 }
@@ -594,7 +604,12 @@ catch (...)
     throw;
 }
 
-[[msvc::forceinline]] void ROW::WriteHelper::ReplaceCharacters(til::CoordType width) noexcept
+#if defined(__clang__)
+[[clang::always_inline]]
+#else
+[[msvc::forceinline]]
+#endif
+void ROW::WriteHelper::ReplaceCharacters(til::CoordType width) noexcept
 {
     const auto colEndNew = gsl::narrow_cast<uint16_t>(colEnd + width);
     if (colEndNew > colLimit)
@@ -645,7 +660,12 @@ catch (...)
     throw;
 }
 
-[[msvc::forceinline]] void ROW::WriteHelper::ReplaceText() noexcept
+#if defined(__clang__)
+[[clang::always_inline]]
+#else
+[[msvc::forceinline]]
+#endif
+void ROW::WriteHelper::ReplaceText() noexcept
 {
     // This function starts with a fast-pass for ASCII. ASCII is still predominant in technical areas.
     //
@@ -673,7 +693,12 @@ catch (...)
     charsConsumed = ch - chBeg;
 }
 
-[[msvc::forceinline]] void ROW::WriteHelper::_replaceTextUnicode(size_t ch, std::wstring_view::const_iterator it) noexcept
+#if defined(__clang__)
+[[clang::always_inline]]
+#else
+[[msvc::forceinline]]
+#endif
+void ROW::WriteHelper::_replaceTextUnicode(size_t ch, std::wstring_view::const_iterator it) noexcept
 {
     auto& cwd = CodepointWidthDetector::Singleton();
 
@@ -819,7 +844,12 @@ catch (...)
     throw;
 }
 
-[[msvc::forceinline]] void ROW::WriteHelper::CopyTextFrom(const std::span<const uint16_t>& charOffsets) noexcept
+#if defined(__clang__)
+[[clang::always_inline]]
+#else
+[[msvc::forceinline]]
+#endif
+void ROW::WriteHelper::CopyTextFrom(const std::span<const uint16_t>& charOffsets) noexcept
 {
     // Since our `charOffsets` input is already in columns (just like the `ROW::_charOffsets`),
     // we can directly look up the end char-offset, but...
@@ -846,7 +876,12 @@ catch (...)
 
 #pragma warning(push)
 #pragma warning(disable : 26481) // Don't use pointer arithmetic. Use span instead (bounds.1).
-[[msvc::forceinline]] void ROW::WriteHelper::_copyOffsets(uint16_t* __restrict dst, const uint16_t* __restrict src, uint16_t size, uint16_t offset) noexcept
+#if defined(__clang__)
+[[clang::always_inline]]
+#else
+[[msvc::forceinline]]
+#endif
+void ROW::WriteHelper::_copyOffsets(uint16_t* __restrict dst, const uint16_t* __restrict src, uint16_t size, uint16_t offset) noexcept
 {
     __assume(src != nullptr);
     __assume(dst != nullptr);
@@ -864,7 +899,12 @@ catch (...)
 }
 #pragma warning(pop)
 
-[[msvc::forceinline]] void ROW::WriteHelper::Finish()
+#if defined(__clang__)
+[[clang::always_inline]]
+#else
+[[msvc::forceinline]]
+#endif
+void ROW::WriteHelper::Finish()
 {
     colEndDirty = row._adjustForward(colEndDirty);
 
