@@ -23,17 +23,6 @@ if "%~2"=="" (
     if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
 )
 
-REM Set LTO parameter (default: true)
-set "ENABLE_LTO=%~3"
-if "%ENABLE_LTO%"=="" set "ENABLE_LTO=true"
-if /i "%ENABLE_LTO%"=="true" (
-    set "LTO_PARAM=/p:WindowsTerminalEnableLTO=true"
-    echo LTO enabled for this build
-) else (
-    set "LTO_PARAM="
-    echo LTO disabled for this build
-)
-
 set "VSDEVCMD="
 
 REM Check for Visual Studio versions in descending order (newer first)
@@ -58,6 +47,17 @@ if "%VSDEVCMD%"=="" (
 echo Using Visual Studio from: %VSDEVCMD%
 call "%VSDEVCMD%"
 endlocal
+
+REM Set LTO parameter (default: true)
+set "ENABLE_LTO=%~3"
+if "%ENABLE_LTO%"=="" set "ENABLE_LTO=true"
+if /i "%ENABLE_LTO%"=="true" (
+    set "LTO_PARAM=/p:WindowsTerminalEnableLTO=true"
+    echo LTO enabled for this build
+) else (
+    set "LTO_PARAM="
+    echo LTO disabled for this build
+)
 
 REM Check if E: drive exists
 if not exist e:\ (
@@ -147,6 +147,8 @@ set "TIMESTAMP=%DATE:~10,4%%DATE:~4,2%%DATE:~7,2%_%TIME:~0,2%%TIME:~3,2%%TIME:~6
 set "TIMESTAMP=%TIMESTAMP: =0%"
 set "TIMESTAMP=%TIMESTAMP:/=_%"
 set "BUILD_OUTPUT=%OUTPUT_DIR%\build_%CONFIG_NAME%_%TIMESTAMP%.txt"
+
+echo "msbuild openconsole.slnx /p:platform=%~1;configuration=%~2 %~3 /t:Conhost\Host_EXE /m > %BUILD_OUTPUT% 2>&1"
 
 msbuild openconsole.slnx /p:platform=%~1;configuration=%~2 %~3 /t:Conhost\Host_EXE /m > "%BUILD_OUTPUT%" 2>&1
 set "BUILD_ERROR=%ERRORLEVEL%"
