@@ -100,7 +100,7 @@
     </Link>
   </ItemDefinitionGroup>
   <!-- Enable clang ThinLTO for all release builds -->
-  <ItemDefinitionGroup Condition="'$(WindowsTerminalClangBuild)'=='true' and ('$(Configuration)'=='Release' or '$(Configuration)'=='AuditMode')">
+  <ItemDefinitionGroup Condition="'$(WindowsTerminalClangBuild)'=='true' and ('$(Configuration)'=='Release' or '$(Configuration)'=='AuditMode') and '$(ClangPGOBuildMode)'!='Instrument' and '$(ClangPGOBuildMode)'!='Optimize'">
     <ClCompile>
       <!-- Enable ThinLTO for clang - provides excellent optimization with reasonable compile times -->
       <AdditionalOptions>%(AdditionalOptions) -flto=thin</AdditionalOptions>
@@ -109,6 +109,24 @@
       <!-- Enable ThinLTO at link time - lld-link uses /opt:lldlto instead of /lto -->
       <AdditionalOptions>%(AdditionalOptions) /opt:lldlto=3</AdditionalOptions>
     </Link>
+  </ItemDefinitionGroup>
+  <!-- Clang PGO Instrumentation: Generate profile data -->
+  <ItemDefinitionGroup Condition="'$(WindowsTerminalClangBuild)'=='true' and '$(ClangPGOBuildMode)'=='Instrument'">
+    <ClCompile>
+      <!-- Generate instrumentation code to collect profile data -->
+      <AdditionalOptions>%(AdditionalOptions) -fprofile-instr-generate</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <!-- Link with profile runtime -->
+      <AdditionalOptions>%(AdditionalOptions) -fprofile-instr-generate</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+  <!-- Clang PGO Optimization: Use profile data for optimization -->
+  <ItemDefinitionGroup Condition="'$(WindowsTerminalClangBuild)'=='true' and '$(ClangPGOBuildMode)'=='Optimize'">
+    <ClCompile>
+      <!-- Use profile data for optimization (path to .profdata file should be provided) -->
+      <AdditionalOptions>%(AdditionalOptions) -fprofile-instr-use=$(SolutionDir)\profile.profdata</AdditionalOptions>
+    </ClCompile>
   </ItemDefinitionGroup>
 
   <Target Name="_ComputePrecompToCleanUp">

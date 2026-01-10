@@ -1,17 +1,47 @@
-REM Find and call the appropriate VsDevCmd.bat
 @echo off
 setlocal enabledelayedexpansion
 
 REM ====================================================================
 REM Parse command-line parameter for build configuration
-REM Usage: prep.cmd [1-8] [output_folder]
-REM   1 = X64 MSVC RELEASE       2 = X64 MSVC DEBUG
-REM   3 = X64 LLVM RELEASE       4 = X64 LLVM DEBUG
-REM   5 = ARM64 MSVC RELEASE     6 = ARM64 MSVC DEBUG
-REM   7 = ARM64 LLVM RELEASE     8 = ARM64 LLVM DEBUG
+REM Usage: prep.cmd [1-8] [output_folder] [pgo_mode]
+REM   1 = X64 MSVC RELEASE           2 = X64 MSVC DEBUG
+REM   3 = X64 LLVM RELEASE           4 = X64 LLVM DEBUG
+REM   5 = ARM64 MSVC RELEASE         6 = ARM64 MSVC DEBUG
+REM   7 = ARM64 LLVM RELEASE         8 = ARM64 LLVM DEBUG
 REM   output_folder = Optional folder path for build outputs (default: script directory)
-REM Note: LLD linker and ThinLTO are always used for LLVM/clang builds (options 3-8)
+REM   pgo_mode = Optional: no-pgo (default), instrument, optimize
+REM Note: LLD linker and ThinLTO are always used for LLVM/clang builds
+REM       PGO works for release builds only (debug builds ignore pgo_mode)
 REM ====================================================================
+
+REM Validate that BUILD_CHOICE parameter is provided
+set BUILD_CHOICE=%~1
+
+if "%BUILD_CHOICE%"=="" (
+    echo ERROR: Build configuration parameter is required
+    echo Usage: prep.cmd [1-8] [output_folder] [pgo_mode]
+    echo   1 = X64 MSVC RELEASE           2 = X64 MSVC DEBUG
+    echo   3 = X64 LLVM RELEASE           4 = X64 LLVM DEBUG
+    echo   5 = ARM64 MSVC RELEASE         6 = ARM64 MSVC DEBUG
+    echo   7 = ARM64 LLVM RELEASE         8 = ARM64 LLVM DEBUG
+    echo   "pgo_mode = no-pgo (default), instrument, optimize"
+    timeout /t 10 /nobreak >nul
+    exit /b 1
+)
+
+REM Validate that BUILD_CHOICE is in valid range (1-8)
+if "%BUILD_CHOICE%" LSS "1" (
+    echo ERROR: Invalid build choice '%BUILD_CHOICE%' - must be between 1 and 8
+    timeout /t 10 /nobreak >nul
+    exit /b 1
+)
+if "%BUILD_CHOICE%" GTR "8" (
+    echo ERROR: Invalid build choice '%BUILD_CHOICE%' - must be between 1 and 8
+    timeout /t 10 /nobreak >nul
+    exit /b 1
+)
+
+echo Build configuration: %BUILD_CHOICE%
 
 REM Set output directory from parameter or use script directory
 if "%~2"=="" (
@@ -44,7 +74,28 @@ if "%VSDEVCMD%"=="" (
 
 echo Using Visual Studio from: %VSDEVCMD%
 call "%VSDEVCMD%"
-endlocal
+REM endlocal
+
+REM Set PGO mode parameter (default: no-pgo)
+set "PGO_MODE=%~3"
+if "%PGO_MODE%"=="" set "PGO_MODE=no-pgo"
+if /i "%PGO_MODE%"=="no-pgo" (
+    set "PGO_PARAM="
+    echo PGO disabled for this build
+) else if /i "%PGO_MODE%"=="instrument" (
+    set "PGO_PARAM_MSVC=/p:PGOBuildMode=Instrument"
+    set "PGO_PARAM_LLVM=/p:ClangPGOBuildMode=Instrument"
+    echo PGO Instrumentation enabled for this build
+) else if /i "%PGO_MODE%"=="optimize" (
+    set "PGO_PARAM_MSVC=/p:PGOBuildMode=Optimize"
+    set "PGO_PARAM_LLVM=/p:ClangPGOBuildMode=Optimize"
+    echo PGO Optimization enabled for this build
+) else (
+    echo ERROR: Invalid PGO mode '%PGO_MODE%'
+    echo Valid options: no-pgo, instrument, optimize
+    timeout /t 10 /nobreak >nul
+    exit /b 1
+)
 
 REM Check if E: drive exists
 if not exist e:\ (
@@ -75,34 +126,36 @@ if errorlevel 1 (
 REM ====================================================================
 REM Build Configuration Selection
 REM ====================================================================
-set "BUILD_CHOICE=%~1"
-echo %BUILD_CHOICE%
+set BUILD_CHOICE=%~1
 
 if "%BUILD_CHOICE%"=="1" (
-    call :BuildConfig "x64" "release" "" "X64 MSVC RELEASE"
+    call :BuildConfig "x64" "release" "%PGO_PARAM_MSVC%" "X64 MSVC RELEASE"
 ) else if "%BUILD_CHOICE%"=="2" (
     call :BuildConfig "x64" "debug" "" "X64 MSVC DEBUG"
 ) else if "%BUILD_CHOICE%"=="3" (
-    call :BuildConfig "x64" "release" "/p:WindowsTerminalClangBuild=true" "X64 LLVM RELEASE"
+    call :BuildConfig "x64" "release" "/p:WindowsTerminalClangBuild=true %PGO_PARAM_LLVM%" "X64 LLVM RELEASE"
 ) else if "%BUILD_CHOICE%"=="4" (
     call :BuildConfig "x64" "debug" "/p:WindowsTerminalClangBuild=true" "X64 LLVM DEBUG"
 ) else if "%BUILD_CHOICE%"=="5" (
-    call :BuildConfig "arm64" "release" "" "ARM64 MSVC RELEASE"
+    call :BuildConfig "arm64" "release" "%PGO_PARAM_MSVC%" "ARM64 MSVC RELEASE"
 ) else if "%BUILD_CHOICE%"=="6" (
     call :BuildConfig "arm64" "debug" "" "ARM64 MSVC DEBUG"
 ) else if "%BUILD_CHOICE%"=="7" (
-    call :BuildConfig "arm64" "release" "/p:WindowsTerminalClangBuild=true" "ARM64 LLVM RELEASE"
+    call :BuildConfig "arm64" "release" "/p:WindowsTerminalClangBuild=true %PGO_PARAM_LLVM%" "ARM64 LLVM RELEASE"
 ) else if "%BUILD_CHOICE%"=="8" (
     call :BuildConfig "arm64" "debug" "/p:WindowsTerminalClangBuild=true" "ARM64 LLVM DEBUG"
 ) else (
     echo ERROR: Invalid build choice '%BUILD_CHOICE%'
-    echo Usage: prep.cmd [1-8]
-    echo   1 = X64 MSVC RELEASE       2 = X64 MSVC DEBUG
-    echo   3 = X64 LLVM RELEASE       4 = X64 LLVM DEBUG
-    echo   5 = ARM64 MSVC RELEASE     6 = ARM64 MSVC DEBUG
-    echo   7 = ARM64 LLVM RELEASE     8 = ARM64 LLVM DEBUG
-    echo   (LLD linker is always used for LLVM builds)
-    echo   (no parameter = error)
+    echo Usage: prep.cmd [1-8] [output_folder] [pgo_mode]
+    echo   1 = X64 MSVC RELEASE           2 = X64 MSVC DEBUG
+    echo   3 = X64 LLVM RELEASE           4 = X64 LLVM DEBUG
+    echo   5 = ARM64 MSVC RELEASE         6 = ARM64 MSVC DEBUG
+    echo   7 = ARM64 LLVM RELEASE         8 = ARM64 LLVM DEBUG
+    echo   "pgo_mode = no-pgo (default), instrument, optimize"
+    echo   "(LLD linker is always used for LLVM builds)"
+    echo   "(ThinLTO is always used for LLVM release builds without PGO)"
+    echo   "(PGO works for release builds only)"
+    echo   "(no parameter = error)"
     timeout /t 10 /nobreak >nul
     exit /b 1
 )
@@ -116,6 +169,8 @@ REM ====================================================================
 :BuildConfig
 echo.
 echo Building: %~4
+
+echo debug2
 
 REM Create output file in output directory with timestamp and config name
 set "CONFIG_NAME=%~4"

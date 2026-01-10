@@ -4,9 +4,10 @@ setlocal enabledelayedexpansion
 REM ====================================================================
 REM Performance Test Runner
 REM Runs each build configuration N times, discards slowest, averages the rest
-REM Usage: runPerfTests.cmd [iterations] [output_folder]
+REM Usage: runPerfTests.cmd [iterations] [output_folder] [pgo_mode]
 REM   iterations: Optional number of iterations per configuration (default: 7)
 REM   output_folder: Optional folder path for BuildTimeSummary.txt (default: e:\terminal)
+REM   pgo_mode: Optional PGO mode - no-pgo (default), instrument, optimize
 REM Note: LLD linker and ThinLTO are always used for LLVM/clang builds
 REM ====================================================================
 
@@ -27,6 +28,12 @@ if "%~2"=="" (
 REM Ensure output directory exists
 if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
 
+set "PGO_MODE=%~3"
+if "%PGO_MODE%"=="" set "PGO_MODE=no-pgo"
+
+set "ARM_RELEASE_ONLY=%~4"
+if "%ARM_RELEASE_ONLY%"=="" set "ARM_RELEASE_ONLY=no"
+
 echo ====================================================================
 echo Performance Test Suite
 echo Running each configuration %ITERATIONS% times...
@@ -39,8 +46,14 @@ set "SUMMARY_FILE=%OUTPUT_DIR%\BuildTimeSummary.txt"
 if exist "%SUMMARY_FILE%" del "%SUMMARY_FILE%"
 
 REM Loop through all 8 configurations
+if "%ARM_RELEASE_ONLY%"=="yes" (
+    for %%C in (5 7) do (
+        call :RunConfigTests %%C
+    )
+) else (
 for %%C in (1 2 3 4 5 6 7 8) do (
     call :RunConfigTests %%C
+)
 )
 
 echo.
@@ -86,7 +99,7 @@ set /a run_count=0
 
 for /l %%i in (1,1,%ITERATIONS%) do (
     echo Run %%i of %ITERATIONS%...
-    start /wait cmd /c ""%~dp0prep.cmd" %CONFIG% "%OUTPUT_DIR%""
+    start /wait cmd /c ""%~dp0prep.cmd" %CONFIG% "%OUTPUT_DIR%" %PGO_MODE%"
 
     REM Find the most recent build output file for this config
     set "LAST_FILE="
