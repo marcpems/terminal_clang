@@ -4,15 +4,13 @@ setlocal enabledelayedexpansion
 
 REM ====================================================================
 REM Parse command-line parameter for build configuration
-REM Usage: prep.cmd [1-12] [output_folder] [enable_lto]
+REM Usage: prep.cmd [1-8] [output_folder]
 REM   1 = X64 MSVC RELEASE       2 = X64 MSVC DEBUG
 REM   3 = X64 LLVM RELEASE       4 = X64 LLVM DEBUG
 REM   5 = ARM64 MSVC RELEASE     6 = ARM64 MSVC DEBUG
 REM   7 = ARM64 LLVM RELEASE     8 = ARM64 LLVM DEBUG
-REM   9 = X64 LLVM LLD RELEASE   10 = X64 LLVM LLD DEBUG
-REM   11 = ARM64 LLVM LLD RELEASE 12 = ARM64 LLVM LLD DEBUG
 REM   output_folder = Optional folder path for build outputs (default: script directory)
-REM   enable_lto = Optional: true to enable LTO for LLD builds, false to disable (default: true)
+REM Note: LLD linker and ThinLTO are always used for LLVM/clang builds (options 3-8)
 REM ====================================================================
 
 REM Set output directory from parameter or use script directory
@@ -47,17 +45,6 @@ if "%VSDEVCMD%"=="" (
 echo Using Visual Studio from: %VSDEVCMD%
 call "%VSDEVCMD%"
 endlocal
-
-REM Set LTO parameter (default: true)
-set "ENABLE_LTO=%~3"
-if "%ENABLE_LTO%"=="" set "ENABLE_LTO=true"
-if /i "%ENABLE_LTO%"=="true" (
-    set "LTO_PARAM=/p:WindowsTerminalEnableLTO=true"
-    echo LTO enabled for this build
-) else (
-    set "LTO_PARAM="
-    echo LTO disabled for this build
-)
 
 REM Check if E: drive exists
 if not exist e:\ (
@@ -107,23 +94,14 @@ if "%BUILD_CHOICE%"=="1" (
     call :BuildConfig "arm64" "release" "/p:WindowsTerminalClangBuild=true" "ARM64 LLVM RELEASE"
 ) else if "%BUILD_CHOICE%"=="8" (
     call :BuildConfig "arm64" "debug" "/p:WindowsTerminalClangBuild=true" "ARM64 LLVM DEBUG"
-) else if "%BUILD_CHOICE%"=="9" (
-    call :BuildConfig "x64" "release" "/p:WindowsTerminalClangLLDBuild=true %LTO_PARAM%" "X64 LLVM LLD RELEASE"
-) else if "%BUILD_CHOICE%"=="10" (
-    call :BuildConfig "x64" "debug" "/p:WindowsTerminalClangLLDBuild=true %LTO_PARAM%" "X64 LLVM LLD DEBUG"
-) else if "%BUILD_CHOICE%"=="11" (
-    call :BuildConfig "arm64" "release" "/p:WindowsTerminalClangLLDBuild=true %LTO_PARAM%" "ARM64 LLVM LLD RELEASE"
-) else if "%BUILD_CHOICE%"=="12" (
-    call :BuildConfig "arm64" "debug" "/p:WindowsTerminalClangLLDBuild=true %LTO_PARAM%" "ARM64 LLVM LLD DEBUG"
 ) else (
     echo ERROR: Invalid build choice '%BUILD_CHOICE%'
-    echo Usage: prep.cmd [1-12]
+    echo Usage: prep.cmd [1-8]
     echo   1 = X64 MSVC RELEASE       2 = X64 MSVC DEBUG
     echo   3 = X64 LLVM RELEASE       4 = X64 LLVM DEBUG
     echo   5 = ARM64 MSVC RELEASE     6 = ARM64 MSVC DEBUG
     echo   7 = ARM64 LLVM RELEASE     8 = ARM64 LLVM DEBUG
-    echo   9 = X64 LLVM LLD RELEASE   10 = X64 LLVM LLD DEBUG
-    echo   11 = ARM64 LLVM LLD RELEASE 12 = ARM64 LLVM LLD DEBUG
+    echo   (LLD linker is always used for LLVM builds)
     echo   (no parameter = error)
     timeout /t 10 /nobreak >nul
     exit /b 1

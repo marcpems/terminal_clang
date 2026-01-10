@@ -97,7 +97,7 @@
 
   <!-- For ALL build types-->
   <PropertyGroup Label="Configuration">
-    <PlatformToolset Condition="'$(OpenConsoleProjectRequiresMSVC)'!='true' and ('$(WindowsTerminalClangBuild)'=='true' or '$(WindowsTerminalClangLLDBuild)'=='true')">ClangCL</PlatformToolset>
+    <PlatformToolset Condition="'$(OpenConsoleProjectRequiresMSVC)'!='true' and '$(WindowsTerminalClangBuild)'=='true'">ClangCL</PlatformToolset>
     <PlatformToolset Condition="'$(PlatformToolset)'==''">v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <LinkIncremental>false</LinkIncremental>

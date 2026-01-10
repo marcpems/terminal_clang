@@ -83,13 +83,13 @@
   <PropertyGroup>
     <CAExcludePath>$(SolutionDir)\dep\;$(CAExcludePath)</CAExcludePath>
   </PropertyGroup>
-<!-- Configure LLD linker when using '$(WindowsTerminalClangLLDBuild)'=='true' -->
-  <PropertyGroup Condition="'$(WindowsTerminalClangLLDBuild)'=='true'">
+<!-- Configure LLD linker for all clang builds -->
+  <PropertyGroup Condition="'$(WindowsTerminalClangBuild)'=='true'">
     <LinkToolExe>lld-link.exe</LinkToolExe>
     <!-- lld-link doesn't support MSVC LTCG, disable whole program optimization -->
     <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(WindowsTerminalClangLLDBuild)'=='true'">
+  <ItemDefinitionGroup Condition="'$(WindowsTerminalClangBuild)'=='true'">
     <ClCompile>
       <!-- Disable /GL (MSVC Whole Program Optimization) for lld-link compatibility -->
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -99,8 +99,8 @@
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
-  <!-- Enable clang LTO for release builds with LLD (controlled by WindowsTerminalEnableLTO) -->
-  <ItemDefinitionGroup Condition="'$(WindowsTerminalClangLLDBuild)'=='true' and ('$(Configuration)'=='Release' or '$(Configuration)'=='AuditMode') and '$(WindowsTerminalEnableLTO)'=='true'">
+  <!-- Enable clang ThinLTO for all release builds -->
+  <ItemDefinitionGroup Condition="'$(WindowsTerminalClangBuild)'=='true' and ('$(Configuration)'=='Release' or '$(Configuration)'=='AuditMode')">
     <ClCompile>
       <!-- Enable ThinLTO for clang - provides excellent optimization with reasonable compile times -->
       <AdditionalOptions>%(AdditionalOptions) -flto=thin</AdditionalOptions>

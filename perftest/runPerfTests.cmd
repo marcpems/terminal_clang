@@ -4,10 +4,10 @@ setlocal enabledelayedexpansion
 REM ====================================================================
 REM Performance Test Runner
 REM Runs each build configuration N times, discards slowest, averages the rest
-REM Usage: runPerfTests.cmd [iterations] [output_folder] [enable_lto]
+REM Usage: runPerfTests.cmd [iterations] [output_folder]
 REM   iterations: Optional number of iterations per configuration (default: 7)
 REM   output_folder: Optional folder path for BuildTimeSummary.txt (default: e:\terminal)
-REM   enable_lto: Optional: true to enable LTO for LLD builds, false to disable (default: true)
+REM Note: LLD linker and ThinLTO are always used for LLVM/clang builds
 REM ====================================================================
 
 REM Set number of iterations from parameter or use default
@@ -27,9 +27,6 @@ if "%~2"=="" (
 REM Ensure output directory exists
 if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
 
-set "ENABLE_LTO=%~3"
-if "%ENABLE_LTO%"=="" set "ENABLE_LTO=true"
-
 echo ====================================================================
 echo Performance Test Suite
 echo Running each configuration %ITERATIONS% times...
@@ -41,10 +38,8 @@ REM Delete existing summary file if it exists
 set "SUMMARY_FILE=%OUTPUT_DIR%\BuildTimeSummary.txt"
 if exist "%SUMMARY_FILE%" del "%SUMMARY_FILE%"
 
-REM Loop through all 12 configurations
-for %%C in (1 2 3 4 5 6 7 8 9 10 11 12) do (
-REM just the LLD configs
-REM for %%C in (9 10 11 12) do (
+REM Loop through all 8 configurations
+for %%C in (1 2 3 4 5 6 7 8) do (
     call :RunConfigTests %%C
 )
 
@@ -77,10 +72,6 @@ if "%CONFIG%"=="5" set "CONFIG_DESC=ARM64 MSVC RELEASE"
 if "%CONFIG%"=="6" set "CONFIG_DESC=ARM64 MSVC DEBUG"
 if "%CONFIG%"=="7" set "CONFIG_DESC=ARM64 LLVM RELEASE"
 if "%CONFIG%"=="8" set "CONFIG_DESC=ARM64 LLVM DEBUG"
-if "%CONFIG%"=="9" set "CONFIG_DESC=X64 LLVM LLD RELEASE"
-if "%CONFIG%"=="10" set "CONFIG_DESC=X64 LLVM LLD DEBUG"
-if "%CONFIG%"=="11" set "CONFIG_DESC=ARM64 LLVM LLD RELEASE"
-if "%CONFIG%"=="12" set "CONFIG_DESC=ARM64 LLVM LLD DEBUG"
 
 echo.
 echo ----------------------------------------------------------------
@@ -95,7 +86,7 @@ set /a run_count=0
 
 for /l %%i in (1,1,%ITERATIONS%) do (
     echo Run %%i of %ITERATIONS%...
-    start /wait cmd /c ""%~dp0prep.cmd" %CONFIG% "%OUTPUT_DIR%" %ENABLE_LTO%"
+    start /wait cmd /c ""%~dp0prep.cmd" %CONFIG% "%OUTPUT_DIR%""
 
     REM Find the most recent build output file for this config
     set "LAST_FILE="
