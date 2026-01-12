@@ -118,14 +118,14 @@
     </ClCompile>
     <Link>
       <!-- Link with profile runtime -->
-      <AdditionalOptions>%(AdditionalOptions) -fprofile-instr-generate</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions) /LTCG:PGO </AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <!-- Clang PGO Optimization: Use profile data for optimization -->
   <ItemDefinitionGroup Condition="'$(WindowsTerminalClangBuild)'=='true' and '$(ClangPGOBuildMode)'=='Optimize'">
     <ClCompile>
       <!-- Use profile data for optimization (path to .profdata file should be provided) -->
-      <AdditionalOptions>%(AdditionalOptions) -fprofile-instr-use=$(SolutionDir)\profile.profdata</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions) -fprofile-use=$(SolutionDir)\profile.profdata</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
 

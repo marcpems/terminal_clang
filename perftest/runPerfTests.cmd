@@ -1,6 +1,10 @@
 @echo off
 setlocal enabledelayedexpansion
 
+REM Check for help parameter
+if /i "%~1"=="-h" goto :ShowHelp
+if /i "%~1"=="-help" goto :ShowHelp
+
 REM ====================================================================
 REM Performance Test Runner
 REM Runs each build configuration N times, discards slowest, averages the rest
@@ -51,9 +55,10 @@ if "%ARM_RELEASE_ONLY%"=="yes" (
         call :RunConfigTests %%C
     )
 ) else (
-for %%C in (1 2 3 4 5 6 7 8) do (
-    call :RunConfigTests %%C
-)
+@REM for %%C in (1 2 3 4 5 6 7 8) do (
+@REM      call :RunConfigTests %%C
+@REM )
+     call :RunConfigTests 5
 )
 
 echo.
@@ -218,3 +223,30 @@ if %centisecs% LSS 10 set "centisecs=0%centisecs%"
 
 set "%out_var%=%hours%:%minutes%:%seconds%.%centisecs%"
 goto :eof
+
+REM ====================================================================
+REM Show help information
+REM ====================================================================
+:ShowHelp
+echo.
+echo Performance Test Runner
+echo ====================================================================
+echo.
+echo Usage: runPerfTests.cmd [iterations] [output_folder] [pgo_mode] [arm_release_only]
+echo.
+echo Parameters:
+echo   iterations       - Number of iterations per configuration (default: 7)
+echo   output_folder    - Folder path for BuildTimeSummary.txt (default: e:\terminal)
+echo   pgo_mode         - PGO mode: no-pgo (default), instrument, optimize
+echo   arm_release_only - Run only ARM64 Release configs: yes or no (default: no)
+echo.
+echo Examples:
+echo   runPerfTests.cmd
+echo   runPerfTests.cmd 10
+echo   runPerfTests.cmd 5 c:\output
+echo   runPerfTests.cmd 7 e:\terminal optimize
+echo   runPerfTests.cmd 5 e:\terminal no-pgo yes
+echo.
+echo Note: LLD linker and ThinLTO are always used for LLVM/clang builds
+echo.
+exit /b 0
