@@ -114,18 +114,23 @@
   <ItemDefinitionGroup Condition="'$(WindowsTerminalClangBuild)'=='true' and '$(ClangPGOBuildMode)'=='Instrument'">
     <ClCompile>
       <!-- Generate instrumentation code to collect profile data -->
-      <AdditionalOptions>%(AdditionalOptions) -fprofile-instr-generate</AdditionalOptions>
+      <!-- -fprofile-generate also works and may be more compatible -->
+      <AdditionalOptions>%(AdditionalOptions) -fprofile-generate</AdditionalOptions>
     </ClCompile>
     <Link>
+      <!-- Manually link the Clang profile runtime library since we're using lld-link directly -->
+      <!-- The library name format is: clang_rt.profile-<arch>.lib -->
+      <AdditionalDependencies Condition="'$(Platform)'=='x64'">clang_rt.profile-x86_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Platform)'=='ARM64'">clang_rt.profile-aarch64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <!-- Link with profile runtime -->
-      <AdditionalOptions>%(AdditionalOptions) -fprofile-instr-generate</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions) /LTCG:PGO </AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <!-- Clang PGO Optimization: Use profile data for optimization -->
   <ItemDefinitionGroup Condition="'$(WindowsTerminalClangBuild)'=='true' and '$(ClangPGOBuildMode)'=='Optimize'">
     <ClCompile>
       <!-- Use profile data for optimization (path to .profdata file should be provided) -->
-      <AdditionalOptions>%(AdditionalOptions) -fprofile-instr-use=$(SolutionDir)\profile.profdata</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions) -fprofile-use=$(SolutionDir)\profile.profdata</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
 

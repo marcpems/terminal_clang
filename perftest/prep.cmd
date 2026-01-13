@@ -54,9 +54,9 @@ if "%~2"=="" (
 set "VSDEVCMD="
 
 REM Check for Visual Studio versions in descending order (newer first)
-REM For each version, check editions: Enterprise, Professional, Community
+REM For each version, check editions: Preview (Insider), Enterprise, Professional, Community
 for %%V in (19 18 17) do (
-    for %%E in (Enterprise Professional Community) do (
+    for %%E in (Insiders Enterprise Professional Community) do (
         set "VSPATH=C:\Program Files\Microsoft Visual Studio\%%V\%%E\Common7\Tools\VsDevCmd.bat"
         if exist "!VSPATH!" (
             set "VSDEVCMD=!VSPATH!"
@@ -89,6 +89,7 @@ if /i "%PGO_MODE%"=="no-pgo" (
 ) else if /i "%PGO_MODE%"=="optimize" (
     set "PGO_PARAM_MSVC=/p:PGOBuildMode=Optimize"
     set "PGO_PARAM_LLVM=/p:ClangPGOBuildMode=Optimize"
+    set PGOPATH=E:\terminal\terminal_clang\perftest\profiles
     echo PGO Optimization enabled for this build
 ) else (
     echo ERROR: Invalid PGO mode '%PGO_MODE%'
@@ -231,9 +232,9 @@ REM Pause for 2 seconds before exiting
 echo LAST_BUILD_TIME=%LAST_BUILD_TIME%
 
 
-timeout /t 2 /nobreak >nul
+timeout /t 10 /nobreak >nul
 
-goto :eof
+REM goto :eof
 
 
 REM msbuild openconsole.slnx /p:platform=x64;configuration=release /t:_Tools\ConsoleBench /m 
